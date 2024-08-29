@@ -1,3 +1,4 @@
+import { DeleteSite } from "@/app/actions";
 import { UploadImageForm } from "@/app/components/dashboard/forms/UploadImageForm";
 import { SubmitButton } from "@/app/components/dashboard/SubmitButtons";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ export default function SettingsSiteRoute({
             <ChevronLeft className="size-4" />
           </Link>
         </Button>
-        <h3 className="text-xl font-semibold ml-2">Go Back</h3>
+        <h3 className="text-xl font-semibold">Go back</h3>
       </div>
 
       <UploadImageForm siteId={params.siteId} />
@@ -33,12 +34,15 @@ export default function SettingsSiteRoute({
         <CardHeader>
           <CardTitle className="text-red-500">Danger</CardTitle>
           <CardDescription>
-            This will Delete your site and all articles associated with it.
+            This will delete your site and all articles associated with it.
             Click the button below to delete everything
           </CardDescription>
         </CardHeader>
         <CardFooter>
+          <form action={DeleteSite}>
+            <input type="hidden" name="siteId" value={params.siteId} />
             <SubmitButton text="Delete Everything" variant="destructive" />
+          </form>
         </CardFooter>
       </Card>
     </>
