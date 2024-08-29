@@ -1,7 +1,9 @@
 "use client";
 
+import { CreatePostAction } from "@/app/actions";
 import TailwindEditor from "@/app/components/dashboard/EditorWrapper";
 import { UploadDropzone } from "@/app/utils/UploadthingComponents";
+import { PostSchema } from "@/app/utils/zodSchemas";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,12 +15,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "@conform-to/react";
+import { parseWithZod } from "@conform-to/zod";
 import { ArrowLeft, Atom } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { JSONContent } from "novel";
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { toast } from "sonner";
+import slugify from "react-slugify";
+import { SubmitButton } from "@/app/components/dashboard/SubmitButtons";
 
 export default function ArticleCreationRoute({
   params,
@@ -26,7 +32,32 @@ export default function ArticleCreationRoute({
   params: { siteId: string };
 }) {
   const [imageUrl, setImageUrl] = useState<undefined | string>(undefined);
-  const [value, setValue] = useState<JSONContent | undefined>(undefined)
+  const [value, setValue] = useState<JSONContent | undefined>(undefined);
+  const [slug, setSlugValue] = useState<undefined | string>(undefined);
+  const [title, setTitle] = useState<undefined | string>(undefined);
+  const [lastResult, action] = useActionState(CreatePostAction, undefined);
+  const [form, fields] = useForm({
+    lastResult,
+
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: PostSchema });
+    },
+
+    shouldValidate: "onBlur",
+    shouldRevalidate: "onInput",
+  });
+
+  function handleSlugGeneration() {
+    const titleInput = title;
+
+    if (titleInput?.length === 0 || titleInput === undefined) {
+      return toast.error("Please createa a title first");
+    }
+
+    setSlugValue(slugify(titleInput));
+
+    return toast.success("Slug has been Created");
+  }
   return (
     <>
       <div className="flex items-center">
@@ -49,28 +80,67 @@ export default function ArticleCreationRoute({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="flex flex-col gap-6">
+          <form
+            className="flex flex-col gap-6"
+            id={form.id}
+            onSubmit={form.onSubmit}
+            action={action}>
+              <input
+              name="siteId"
+              value={params.siteId}
+              type="hidden"
+              />
             <div className="grid gap-2">
               <Label>Title</Label>
-              <Input placeholder="Nextjs blogging application" />
+              <Input
+                key={fields.title.key}
+                name={fields.title.name}
+                placeholder="Nextjs blogging application"
+                onChange={(e) => setTitle(e.target.value)}
+                value={title}
+              />
+              <p className="text-red-500 text-sm">{fields.title.errors}</p>
             </div>
             <div className="grid gap-2">
               <Label>Slug</Label>
-              <Input placeholder="Article Slug" />
-              <Button className="w-fit" variant="secondary" type="button">
+              <Input
+                onChange={(e) => setSlugValue(e.target.value)}
+                value={slug}
+                key={fields.slug.key}
+                name={fields.slug.name}
+                defaultValue={fields.slug.initialValue}
+                placeholder="Article Slug"
+              />
+              <p className="text-red-500 text-sm">{fields.slug.errors}</p>
+              <Button
+              onClick={handleSlugGeneration}
+              className="w-fit" variant="secondary" type="button">
                 <Atom className="size-4 mr-2" /> Generate Slug
               </Button>
             </div>
             <div className="grid gap-2">
               <Label>Small Description</Label>
               <Textarea
+                key={fields.smallDescription.key}
+                name={fields.smallDescription.name}
+                defaultValue={fields.smallDescription.initialValue}
                 placeholder="Small Description for your blog article ...."
                 className="h-32"
               />
+              <p className="text-red-500 text-sm">
+                {fields.smallDescription.errors}
+              </p>
             </div>
 
             <div className="grid gap-2">
               <Label>Cover Image</Label>
+              <input
+                type="hidden"
+                name={fields.coverImage.name}
+                key={fields.coverImage.key}
+                defaultValue={fields.coverImage.initialValue}
+                value={imageUrl}
+              />
               {imageUrl ? (
                 <Image
                   src={imageUrl}
@@ -83,23 +153,34 @@ export default function ArticleCreationRoute({
                 <UploadDropzone
                   onClientUploadComplete={(res) => {
                     setImageUrl(res[0].url);
-                    toast.success("Image has been uploaded")
+                    toast.success("Image has been uploaded");
                   }}
                   endpoint="imageUploader"
                   onUploadError={() => {
-                    toast.error("Something Went wrong")
+                    toast.error("Something Went wrong");
                   }}
                 />
               )}
+              <p className="text-red-500 text-sm">{fields.coverImage.errors}</p>
             </div>
 
             <div className="grid gap-2">
               <Label>Artice Content</Label>
-              <TailwindEditor
-              onChange={setValue} initialValue={value}
+              <input
+                type="hidden"
+                name={fields.articleContent.name}
+                key={fields.articleContent.key}
+                defaultValue={fields.articleContent.initialValue}
+                value={JSON.stringify(value)}
               />
+              <TailwindEditor onChange={setValue} initialValue={value} />
+              <p className="text-red-500 text-sm">
+                {fields.articleContent.errors}
+              </p>
             </div>
-            <Button className="w-fit">Submit</Button>
+            <SubmitButton 
+            text="Create Article"
+            />
           </form>
         </CardContent>
       </Card>
