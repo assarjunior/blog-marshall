@@ -16,6 +16,8 @@ import CodeBlock from "@tiptap/extension-code-block";
 import OrderList from "@tiptap/extension-ordered-list";
 import Bold from "@tiptap/extension-bold"; // Ajoutez cette ligne
 import HardBreak from "@tiptap/extension-hard-break"; // Ajoutez cette ligne
+import TaskItem from "@tiptap/extension-task-item"
+import TaskList from "@tiptap/extension-task-list"
 
 export function RenderArticle({ json }: { json: JSONContent }) {
   const outPut = useMemo(() => {
@@ -35,6 +37,8 @@ export function RenderArticle({ json }: { json: JSONContent }) {
       OrderList,
       Bold, // Ajoutez cette ligne
       HardBreak, // Ajoutez cette ligne
+      TaskItem,
+      TaskList,
     ]);
   }, [json]);
 

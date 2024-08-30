@@ -25,7 +25,7 @@ export const navLinks = [
     icon: Globe,
   },
   {
-    name: "Prcing",
+    name: "Pricing",
     href: "/dashboard/pricing",
     icon: DollarSign,
   },
