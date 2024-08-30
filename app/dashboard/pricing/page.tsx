@@ -38,10 +38,13 @@ export default async function PricingList() {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: data?.User?.customerId as string,
-      return_url: "http://localhost:3000/dashboard/pricing",
+      return_url:
+        process.env.NODE_ENV === "production"
+          ? "https://blog-marshall.vercel.app/dashboard"
+          : "http://localhost:3000/dashboard",
     });
 
-    return redirect(session.url)
+    return redirect(session.url);
   }
 
   if (data?.status === "active") {
