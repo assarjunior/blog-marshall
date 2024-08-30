@@ -11,33 +11,64 @@ import { stripe } from "./utils/stripe";
 export async function CreateSiteAction(prevState: any, formData: FormData) {
   const user = await requireUser();
 
-  const submission = await parseWithZod(formData, {
-    schema: SiteCreationSchema({
-      async isSubdirectoryUnique() {
-        const existingSubDirectory = await prisma.site.findUnique({
-          where: {
-            subdirectory: formData.get("subdirectory") as string,
-          },
-        });
-        return !existingSubDirectory;
+  const [subStatus, sites] = await Promise.all([
+    prisma.subscription.findUnique({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        status: true,
       },
     }),
-    async: true,
-  });
+    prisma.site.findMany({
+      where: {
+        userId: user.id,
+      },
+    }),
+  ]);
 
-  if (submission.status !== "success") {
-    return submission.reply();
+  if (!subStatus || subStatus.status !== "active") {
+    if (sites.length < 1) {
+      // Allow creating a site
+     await createSite();
+    } else {
+      // user already has one site dont allow
+      return redirect("/dashboard/pricing")
+    }
+  } else if (subStatus.status === "active") {
+    // User has an active plan he can create sites...
+    await createSite();
   }
 
-  const response = await prisma.site.create({
-    data: {
-      description: submission.value.description,
-      name: submission.value.name,
-      subdirectory: submission.value.subdirectory,
-      userId: user.id,
-    },
-  });
-
+  async function createSite() {
+    const submission = await parseWithZod(formData, {
+      schema: SiteCreationSchema({
+        async isSubdirectoryUnique() {
+          const existingSubDirectory = await prisma.site.findUnique({
+            where: {
+              subdirectory: formData.get("subdirectory") as string,
+            },
+          });
+          return !existingSubDirectory;
+        },
+      }),
+      async: true,
+    });
+  
+    if (submission.status !== "success") {
+      return submission.reply();
+    }
+  
+    const response = await prisma.site.create({
+      data: {
+        description: submission.value.description,
+        name: submission.value.name,
+        subdirectory: submission.value.subdirectory,
+        userId: user.id,
+      },
+    });
+  
+  }
   return redirect("/dashboard/sites");
 }
 export async function CreatePostAction(prevState: any, formData: FormData) {
@@ -171,7 +202,7 @@ export async function CreateSubscription() {
     mode: "subscription",
     billing_address_collection: "auto",
     payment_method_types: ["card"],
-    line_items: [{price: process.env.STREPE_PRICE_ID, quantity: 1}],
+    line_items: [{ price: process.env.STREPE_PRICE_ID, quantity: 1 }],
     customer_update: {
       address: "auto",
       name: "auto",
@@ -180,5 +211,5 @@ export async function CreateSubscription() {
     cancel_url: "http://localhost:3000/dashboard/payment/cancelled",
   });
 
-  return redirect(session.url as string)
+  return redirect(session.url as string);
 }
