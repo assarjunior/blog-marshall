@@ -20,11 +20,14 @@ model User {
   firstName String
   lastName String
   profileImage String
+  customerId String? @unique
 
   createdAt DateTime @default(now())
 
   Site Site[]
   posts Post[]
+
+  Subscription Subscription?
 }
 
 model Site {
@@ -56,4 +59,18 @@ model Post {
   userId String?
   Site Site? @relation(fields: [siteId], references: [id], onDelete: Cascade)
   siteId String?
+}
+
+model Subscription {
+  stripeSubscriptionID String @id @unique
+  interval String
+  status String
+  planId String
+  currentPeriodStart Int
+  currentPeriodEnd Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  User User? @relation(fields: [userId], references: [id])
+  userId String? @unique
 }
