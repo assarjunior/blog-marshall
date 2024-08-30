@@ -53,7 +53,7 @@ export default async function SitesRoute() {
           href="/dashboard/sites/new"
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
           {data.map((item) => (
             <Card key={item.id}>
               <Image
@@ -64,8 +64,8 @@ export default async function SitesRoute() {
                 height={200}
               />
               <CardHeader>
-                <CardTitle>{item.name}</CardTitle>
-                <CardDescription>{item.description}</CardDescription>
+                <CardTitle className="truncate">{item.name}</CardTitle>
+                <CardDescription className="line-clamp-2">{item.description}</CardDescription>
               </CardHeader>
               <CardFooter>
                 <Button asChild className="w-full">

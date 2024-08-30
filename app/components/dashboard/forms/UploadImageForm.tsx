@@ -18,14 +18,15 @@ import { UpdateImage } from "@/app/actions";
 interface iAppProps {
   siteId: string;
 }
-export async function UploadImageForm({ siteId }: iAppProps) {
+
+export function UploadImageForm({ siteId }: iAppProps) {
   const [imageUrl, setImageUrl] = useState<undefined | string>(undefined);
   return (
     <Card>
       <CardHeader>
         <CardTitle>Image</CardTitle>
         <CardDescription>
-          This is the image of your site. You can change it here
+          This is the image of your site. you can change it here
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -35,7 +36,7 @@ export async function UploadImageForm({ siteId }: iAppProps) {
             alt="Uploaded Image"
             width={200}
             height={200}
-            className="size-[200px] object-cover roudned-lg"
+            className="size-[200px] object-cover rounded-lg"
           />
         ) : (
           <UploadDropzone
@@ -45,7 +46,7 @@ export async function UploadImageForm({ siteId }: iAppProps) {
               toast.success("Image has been uploaded");
             }}
             onUploadError={() => {
-              toast.error("Something Went Wrong");
+              toast.error("Something went wrong.");
             }}
           />
         )}
